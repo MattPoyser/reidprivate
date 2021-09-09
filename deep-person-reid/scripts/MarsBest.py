@@ -153,7 +153,8 @@ class Mars(object):
         min_seq_len (int): tracklet with length shorter than this value will be discarded (default: 0).
     """
     # root = "/scratch/pp1953/data/MARS"
-    root  = "/projects/datasets/MARSFull/"
+    # root  = "/projects/datasets/MARSFull/"
+    root  = "/data/reid/MARS/"
     # root = '/archive/p/pp1953/data/MARS'
     # root = '/mnt/scratch/1/pathak/data/MARS'
     train_name_path = osp.join(root, 'info/train_name.txt')
@@ -518,6 +519,7 @@ class VideoDataset(Dataset):
 
     def __len__(self):
         return len(self.dataset)
+        # return 100
 
     def __getitem__(self, index):
         img_paths, pid, camid = self.dataset[index]
@@ -730,6 +732,7 @@ class VideoDataset_inderase(Dataset):
 
     def __len__(self):
         return len(self.dataset)
+        # return 100
 
     def __getitem__(self, index):
         img_paths, pid, camid = self.dataset[index]
@@ -818,7 +821,8 @@ class RandomIdentitySampler(Sampler):
 
     def __len__(self):
         return self.num_identities * self.num_instances
-    
+        # return 100
+
 def evaluate(distmat, q_pids, g_pids, q_camids, g_camids, max_rank=21):
     num_q, num_g = distmat.shape
     if num_g < max_rank:
@@ -874,48 +878,58 @@ def test(model, queryloader, galleryloader, pool='avg', use_gpu=True, ranks=[1, 
     model.eval()
     qf, q_pids, q_camids = [], [], []
     with torch.no_grad():
-      for batch_idx, (imgs, pids, camids) in enumerate(queryloader):
+      for batch_idx, data in enumerate(queryloader):
+      # for batch_idx, (imgs, pids, camids) in enumerate(queryloader):
+        imgs = data["img"].unsqueeze(1) # sequence length of 1, therefore introduce new dimension at index 1
+        pids = data["pid"]
+        camids = data["camid"]
         if use_gpu:
             imgs = imgs.cuda()
-        imgs = Variable(imgs, volatile=True)
+        imgs = Variable(imgs, volatile=True).unsqueeze(0)
         b, n, s, c, h, w = imgs.size()
         assert(b==1)
         imgs = imgs.view(b*n, s, c, h, w)
         features = model(imgs)
         features = features.view(n, -1)
-        features = torch.mean(features, 0)
+        # features = torch.mean(features, 0)
         features = features.data.cpu()
         qf.append(features)
         q_pids.extend(pids)
         q_camids.extend(camids)
-      qf = torch.stack(qf)
+      qf = torch.cat(qf, 0)
       q_pids = np.asarray(q_pids)
       q_camids = np.asarray(q_camids)
       print("Extracted features for query set, obtained {}-by-{} matrix".format(qf.size(0), qf.size(1)))
       gf, g_pids, g_camids = [], [], []
-      for batch_idx, (imgs, pids, camids) in enumerate(galleryloader):
+      # for batch_idx, (imgs, pids, camids) in enumerate(galleryloader):
+      for batch_idx, data in enumerate(galleryloader):
+      # for batch_idx, (imgs, pids, camids) in enumerate(queryloader):
+        imgs = data["img"].unsqueeze(1) # sequence length of 1, therefore introduce new dimension at index 1
+        pids = data["pid"]
+        camids = data["camid"]
         if use_gpu:
             imgs = imgs.cuda()
-        imgs = Variable(imgs, volatile=True)
+        imgs = Variable(imgs, volatile=True).unsqueeze(0)
         b, n, s, c, h, w = imgs.size()
         imgs = imgs.view(b*n, s , c, h, w)
         assert(b==1)
         features = model(imgs)
         features = features.view(n, -1)
-        if pool == 'avg':
-            features = torch.mean(features, 0)
-        else:
-            features, _ = torch.max(features, 0)
+        # if pool == 'avg':
+        #     features = torch.mean(features, 0)
+        # else:
+        #     features, _ = torch.max(features, 0)
         features = features.data.cpu()
         gf.append(features)
         g_pids.extend(pids)
         g_camids.extend(camids)
-    gf = torch.stack(gf)
+    gf = torch.cat(gf, 0)
     g_pids = np.asarray(g_pids)
     g_camids = np.asarray(g_camids)
     print("Extracted features for gallery set, obtained {}-by-{} matrix".format(gf.size(0), gf.size(1)))
     print("Computing distance matrix")
     m, n = qf.size(0), gf.size(0)
+    # euclidean squared distance
     distmat = torch.pow(qf, 2).sum(dim=1, keepdim=True).expand(m, n) +               torch.pow(gf, 2).sum(dim=1, keepdim=True).expand(n, m).t()
     distmat.addmm_(1, -2, qf, gf.t())
     distmat = distmat.numpy()
@@ -1075,6 +1089,7 @@ class Video_train_Dataset(Dataset):
 
     def __len__(self):
         return self.n_id
+        # return 100
 
 def Video_train_collate_fn(data):
     if isinstance(data[0],collections.Mapping):
@@ -1147,7 +1162,8 @@ class Video_test_Dataset(Dataset):
         return imgs,label,cam
     def __len__(self):
         return len(self.info)
-    
+        # return 100
+
 def Video_test_collate_fn(data):
     if isinstance(data[0],collections.Mapping):
         t_data = [tuple(d.values()) for d in data]
@@ -1827,39 +1843,43 @@ if __name__ == '__main__':
     
     
     
-    dataset = Mars()
-    
-    pin_memory = True
-    trainloader = DataLoader(
-    VideoDataset_inderase(dataset.train, seq_len=8, sample='intelligent',transform=transform_train),
-    sampler=RandomIdentitySampler(dataset.train, num_instances=4),
-    batch_size=2, num_workers=4,
-    pin_memory=pin_memory, drop_last=True,
-)
-    queryloader = DataLoader(
-    VideoDataset(dataset.query, seq_len=8, sample='dense', transform=transform_test),
-    batch_size=1, shuffle=False, num_workers=0,
-    pin_memory=pin_memory, drop_last=False,
-)
+#     dataset = Mars()
+#
+#     pin_memory = True
+#     trainloader = DataLoader(
+#     VideoDataset_inderase(dataset.train, seq_len=8, sample='intelligent',transform=transform_train),
+#     sampler=RandomIdentitySampler(dataset.train, num_instances=4),
+#     batch_size=2, num_workers=4,
+#     pin_memory=pin_memory, drop_last=True,
+# )
+#     queryloader = DataLoader(
+#     VideoDataset(dataset.query, seq_len=8, sample='dense', transform=transform_test),
+#     batch_size=1, shuffle=False, num_workers=0,
+#     pin_memory=pin_memory, drop_last=False,
+# )
+#
+#     galleryloader = DataLoader(
+#     VideoDataset(dataset.gallery, seq_len=8, sample='dense', transform=transform_test),
+#     batch_size=1, shuffle=False, num_workers=0,
+#     pin_memory=pin_memory, drop_last=False,
+# )
+    cfg = get_default_config()
+    cfg.use_gpu = torch.cuda.is_available()
+    if args.config_file:
+        cfg.merge_from_file(args.config_file)
+    reset_config(cfg, args)
+    cfg.merge_from_list(args.opts)
+    set_random_seed(cfg.train.seed)
+    check_cfg(cfg)
+    datamanager = build_datamanager(cfg)
+    trainloader = datamanager.train_loader
+    if "temporallynear" in args.config_file:
+        queryloader = datamanager.test_loader["temporallynear"]['query']
+        galleryloader = datamanager.test_loader["temporallynear"]['gallery']
+    else:
+        queryloader = datamanager.test_loader["bigtosmall"]['query']
+        galleryloader = datamanager.test_loader["bigtosmall"]['gallery']
 
-    galleryloader = DataLoader(
-    VideoDataset(dataset.gallery, seq_len=8, sample='dense', transform=transform_test),
-    batch_size=1, shuffle=False, num_workers=0,
-    pin_memory=pin_memory, drop_last=False,
-)
-    # cfg = get_default_config()
-    # cfg.use_gpu = torch.cuda.is_available()
-    # if args.config_file:
-    #     cfg.merge_from_file(args.config_file)
-    # reset_config(cfg, args)
-    # cfg.merge_from_list(args.opts)
-    # set_random_seed(cfg.train.seed)
-    # check_cfg(cfg)
-    # datamanager = build_datamanager(cfg)
-    # trainloader = datamanager.train_loader
-    # queryloader = datamanager.test_loader["temporallynear"]['query']
-    # galleryloader = datamanager.test_loader["temporallynear"]['gallery']
-    
     #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     print('End dataloader...\n')
     
@@ -1871,6 +1891,7 @@ if __name__ == '__main__':
     criterion_RLL=RankedLoss(1.3,2.0,1.)
      # 2. Optimizer
     model = Baseline(model_name = 'resnet50_ibn_a', num_classes=625, last_stride=1, model_path='../resnet50_ibn_a.pth.tar', stn_flag='no', pretrain_choice='imagenet').to(device)
+    # model = Baseline(model_name = 'resnet101', num_classes=625, last_stride=1, model_path='../resnet50_ibn_a.pth.tar', stn_flag='no', pretrain_choice='none').to(device)
 
     #optimizer = optim.Adam(model.parameters(),lr = 0.0001,weight_decay = 1e-5)
     base_lr = 0.00035 #0.0002
@@ -1926,7 +1947,7 @@ if __name__ == '__main__':
             trip_RLL_list = []
             track_id_loss_list = []
             if cmc >= best_cmc:
-                torch.save(model.state_dict(),os.path.join("/home2/zwjx97/best",'Add_ckpt_best.pth'))
+                torch.save(model.state_dict(),os.path.join("/data/reid/marschkpt", 'best.pth'))
                 best_cmc = cmc
                 #f.write('best\n')
             #f.close()
@@ -1936,13 +1957,13 @@ if __name__ == '__main__':
         total_track_id_loss = 0
         pbar = tqdm(total=len(trainloader),ncols=100,leave=True)
         model.train()
-        for batch_idx, (imgs, pids, camids, labels2) in enumerate(trainloader):
+        # for batch_idx, (imgs, pids, camids, labels2) in enumerate(trainloader):
             # labels2 refers to whether the image has been erased or not (0,1)
-        # for batch_idx, data in enumerate(trainloader):
-            # imgs = data["img"].unsqueeze(1) # sequence length of 1, therefore introduce new dimension at index 1
-            # pids = data["pid"]
-            # camids = data["camid"]
-            # labels2 = torch.zeros((len(imgs),1))
+        for batch_idx, data in enumerate(trainloader):
+            imgs = data["img"].unsqueeze(1) # sequence length of 1, therefore introduce new dimension at index 1
+            pids = data["pid"]
+            camids = data["camid"]
+            labels2 = torch.zeros((len(imgs),1))
             # raise AttributeError(imgs.shape, pids.shape, labels2.shape)
         # print(batch_idx)
             criterion_ID = CrossEntropyLabelSmooth(len(pids)).cuda()

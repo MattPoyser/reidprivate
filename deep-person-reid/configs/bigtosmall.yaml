@@ -7,7 +7,7 @@ data:
   sources: ['bigtosmall']
   targets: ['bigtosmall']
   height: 224
-  width: 224
+  width: 112
   transforms: ['random_flip', 'random_crop', 'random_erase']
   save_dir: 'log/bigtosmall'
 
