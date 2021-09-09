@@ -153,7 +153,7 @@ class Mars(object):
         min_seq_len (int): tracklet with length shorter than this value will be discarded (default: 0).
     """
     # root = "/scratch/pp1953/data/MARS"
-    root  = "/data/reid/MARS"
+    root  = "/projects/datasets/MARSFull/"
     # root = '/archive/p/pp1953/data/MARS'
     # root = '/mnt/scratch/1/pathak/data/MARS'
     train_name_path = osp.join(root, 'info/train_name.txt')
