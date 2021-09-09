@@ -1833,7 +1833,7 @@ if __name__ == '__main__':
     trainloader = DataLoader(
     VideoDataset_inderase(dataset.train, seq_len=8, sample='intelligent',transform=transform_train),
     sampler=RandomIdentitySampler(dataset.train, num_instances=4),
-    batch_size=32, num_workers=4,
+    batch_size=2, num_workers=4,
     pin_memory=pin_memory, drop_last=True,
 )
     queryloader = DataLoader(
