@@ -1796,7 +1796,8 @@ parser.add_argument(
 )
 parser.add_argument(
     '--model_name', type=str, default='resnet50_ibn_a', help='name of model to use'
-)_argument(
+)
+parser.add_argument(
     '--ncc', type=bool, default=False, help='are we on ncc'
 )
 parser.add_argument(
