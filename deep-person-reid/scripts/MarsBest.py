@@ -1797,6 +1797,9 @@ parser.add_argument(
     nargs=argparse.REMAINDER,
     help='Modify config options using the command-line'
 )
+parser.add_argument(
+    '--save_path', type=str, default='best.pth', help='path to data root'
+)
 args = parser.parse_args()
    
 if __name__ == '__main__':
@@ -1890,8 +1893,8 @@ if __name__ == '__main__':
     #criterion_RLL=RankedLoss(1.3,2.0,1.0)
     criterion_RLL=RankedLoss(1.3,2.0,1.)
      # 2. Optimizer
-    model = Baseline(model_name = 'resnet50_ibn_a', num_classes=625, last_stride=1, model_path='../resnet50_ibn_a.pth.tar', stn_flag='no', pretrain_choice='imagenet').to(device)
-    # model = Baseline(model_name = 'resnet101', num_classes=625, last_stride=1, model_path='../resnet50_ibn_a.pth.tar', stn_flag='no', pretrain_choice='none').to(device)
+    # model = Baseline(model_name = 'resnet50_ibn_a', num_classes=625, last_stride=1, model_path='../resnet50_ibn_a.pth.tar', stn_flag='no', pretrain_choice='imagenet').to(device)
+    model = Baseline(model_name = 'resnet101', num_classes=625, last_stride=1, model_path='../resnet50_ibn_a.pth.tar', stn_flag='no', pretrain_choice='none').to(device)
 
     #optimizer = optim.Adam(model.parameters(),lr = 0.0001,weight_decay = 1e-5)
     base_lr = 0.00035 #0.0002
@@ -1947,7 +1950,7 @@ if __name__ == '__main__':
             trip_RLL_list = []
             track_id_loss_list = []
             if cmc >= best_cmc:
-                torch.save(model.state_dict(),os.path.join("/data/reid/marschkpt", 'best.pth'))
+                torch.save(model.state_dict(),os.path.join("/data/reid/marschkpt", args.save_path))
                 best_cmc = cmc
                 #f.write('best\n')
             #f.close()
