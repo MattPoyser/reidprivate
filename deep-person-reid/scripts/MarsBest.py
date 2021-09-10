@@ -1792,16 +1792,16 @@ parser.add_argument(
     '--root', type=str, default='', help='path to data root'
 )
 parser.add_argument(
-    'opts',
-    default=None,
-    nargs=argparse.REMAINDER,
-    help='Modify config options using the command-line'
-)
-parser.add_argument(
     '--save_path', type=str, default='best.pth', help='name to save best checkpoint'
 )
 parser.add_argument(
     '--model_name', type=str, default='resnet50_ibn_a', help='name of model to use'
+)
+parser.add_argument(
+    'opts',
+    default=None,
+    nargs=argparse.REMAINDER,
+    help='Modify config options using the command-line'
 )
 args = parser.parse_args()
    
