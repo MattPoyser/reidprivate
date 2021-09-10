@@ -1798,7 +1798,10 @@ parser.add_argument(
     help='Modify config options using the command-line'
 )
 parser.add_argument(
-    '--save_path', type=str, default='best.pth', help='path to data root'
+    '--save_path', type=str, default='best.pth', help='name to save best checkpoint'
+)
+parser.add_argument(
+    '--model_name', type=str, default='resnet50_ibn_a', help='name of model to use'
 )
 args = parser.parse_args()
    
@@ -1894,7 +1897,7 @@ if __name__ == '__main__':
     criterion_RLL=RankedLoss(1.3,2.0,1.)
      # 2. Optimizer
     # model = Baseline(model_name = 'resnet50_ibn_a', num_classes=625, last_stride=1, model_path='../resnet50_ibn_a.pth.tar', stn_flag='no', pretrain_choice='imagenet').to(device)
-    model = Baseline(model_name = 'resnet101', num_classes=625, last_stride=1, model_path='../resnet50_ibn_a.pth.tar', stn_flag='no', pretrain_choice='none').to(device)
+    model = Baseline(model_name = args.model_name, num_classes=625, last_stride=1, model_path='../resnet50_ibn_a.pth.tar', stn_flag='no', pretrain_choice='none').to(device)
 
     #optimizer = optim.Adam(model.parameters(),lr = 0.0001,weight_decay = 1e-5)
     base_lr = 0.00035 #0.0002
