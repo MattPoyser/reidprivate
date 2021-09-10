@@ -1796,6 +1796,8 @@ parser.add_argument(
 )
 parser.add_argument(
     '--model_name', type=str, default='resnet50_ibn_a', help='name of model to use'
+)_argument(
+    '--ncc', type=bool, default=False, help='are we on ncc'
 )
 parser.add_argument(
     'opts',
@@ -1953,7 +1955,10 @@ if __name__ == '__main__':
             trip_RLL_list = []
             track_id_loss_list = []
             if cmc >= best_cmc:
-                torch.save(model.state_dict(),os.path.join("/data/reid/marschkpt", args.save_path))
+                if args.ncc:
+                    torch.save(model.state_dict(),os.path.join("/home2/lgfm95/reid/marschkpt", args.save_path))
+                else:
+                    torch.save(model.state_dict(),os.path.join("/data/reid/marschkpt", args.save_path))
                 best_cmc = cmc
                 #f.write('best\n')
             #f.close()
