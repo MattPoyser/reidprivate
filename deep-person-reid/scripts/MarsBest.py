@@ -1801,6 +1801,9 @@ parser.add_argument(
     '--ncc', type=bool, default=False, help='are we on ncc'
 )
 parser.add_argument(
+    '--epochs', type=int, default=120, help='number of epochs'
+)
+parser.add_argument(
     'opts',
     default=None,
     nargs=argparse.REMAINDER,
@@ -1936,7 +1939,7 @@ if __name__ == '__main__':
     track_id_loss_list = []
     lr_step_size=50
     best_cmc = 0
-    for e in range(120):
+    for e in range(args.epochs):
         print('Epoch',e)
         
         scheduler.step()
