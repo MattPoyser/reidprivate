@@ -468,6 +468,8 @@ class CenterLoss(nn.Module):
         """
         batch_size = x.size(0)
         distmat = torch.pow(x, 2).sum(dim=1, keepdim=True).expand(batch_size, self.num_classes) +                   torch.pow(self.centers, 2).sum(dim=1, keepdim=True).expand(self.num_classes, batch_size).t()
+        # raise AttributeError(distmat.shape, self.centers.t().shape, x.shape)
+        # https://discuss.pytorch.org/t/addmm--in-torch-nn-linear/1735
         distmat.addmm_(1, -2, x, self.centers.t())
 
         classes = torch.arange(self.num_classes).long()
@@ -1932,6 +1934,7 @@ if __name__ == '__main__':
     
     
     center_criterion = CenterLoss(use_gpu=True)
+    # center_criterion = CenterLoss(use_gpu=True, num_classes=512, feat_dim=512)
     optimizer_center = torch.optim.SGD(center_criterion.parameters(), lr=0.5)
 
     id_loss_list = []

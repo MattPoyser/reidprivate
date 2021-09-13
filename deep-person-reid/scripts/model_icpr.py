@@ -3,6 +3,7 @@
 import torch
 from torch import nn
 import torchvision
+from senet import SENet, SEResNetBottleneck, SEBottleneck, SEResNeXtBottleneck
 
 
 class SegmentConsensus(torch.autograd.Function):
@@ -580,7 +581,8 @@ class Baseline(nn.Module):
 
         f = att_x.view(b,self.in_planes)
         f = self.bottleneck(f) # normalize for angular softmax
-       
+
+        raise AttributeError(f.shape, self.classifier)
         cls_score = self.classifier(f)
        
         
