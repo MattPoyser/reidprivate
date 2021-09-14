@@ -468,6 +468,7 @@ class CenterLoss(nn.Module):
         """
         batch_size = x.size(0)
         distmat = torch.pow(x, 2).sum(dim=1, keepdim=True).expand(batch_size, self.num_classes) +                   torch.pow(self.centers, 2).sum(dim=1, keepdim=True).expand(self.num_classes, batch_size).t()
+        # raise AttributeError(distmat.shape, self.centers.t().shape, x.shape)
         distmat.addmm_(1, -2, x, self.centers.t())
 
         classes = torch.arange(self.num_classes).long()
@@ -965,7 +966,6 @@ import scipy.io as sio
 
 use_gpu = torch.cuda.is_available()
 device = torch.device("cuda" if use_gpu else "cpu")   # use CPU or GPU
-
 
 IMG_EXTENSIONS = [
     '.jpg', '.JPG', '.jpeg', '.JPEG',
@@ -1804,6 +1804,9 @@ parser.add_argument(
     '--epochs', type=int, default=120, help='number of epochs'
 )
 parser.add_argument(
+    '--model_path', type=str, default='../resnet50_ibn_a.pth.tar', help='name of model to use'
+)
+parser.add_argument(
     'opts',
     default=None,
     nargs=argparse.REMAINDER,
@@ -1876,7 +1879,7 @@ if __name__ == '__main__':
 #     pin_memory=pin_memory, drop_last=False,
 # )
     cfg = get_default_config()
-    cfg.use_gpu = torch.cuda.is_available()
+    cfg.use_gpu = not torch.cuda.is_available()
     if args.config_file:
         cfg.merge_from_file(args.config_file)
     reset_config(cfg, args)
@@ -1903,7 +1906,7 @@ if __name__ == '__main__':
     criterion_RLL=RankedLoss(1.3,2.0,1.)
      # 2. Optimizer
     # model = Baseline(model_name = 'resnet50_ibn_a', num_classes=625, last_stride=1, model_path='../resnet50_ibn_a.pth.tar', stn_flag='no', pretrain_choice='imagenet').to(device)
-    model = Baseline(model_name = args.model_name, num_classes=625, last_stride=1, model_path='../resnet50_ibn_a.pth.tar', stn_flag='no', pretrain_choice='none').to(device)
+    model = Baseline(model_name = args.model_name, num_classes=625, last_stride=1, model_path=args.model_path, stn_flag='no', pretrain_choice='none').to(device)
 
     #optimizer = optim.Adam(model.parameters(),lr = 0.0001,weight_decay = 1e-5)
     base_lr = 0.00035 #0.0002
@@ -1931,6 +1934,7 @@ if __name__ == '__main__':
 
     
     
+    # center_criterion = CenterLoss(use_gpu=True, num_classes=512, feat_dim=512)
     center_criterion = CenterLoss(use_gpu=True)
     optimizer_center = torch.optim.SGD(center_criterion.parameters(), lr=0.5)
 
@@ -1987,7 +1991,7 @@ if __name__ == '__main__':
             #print("seqs",seqs.shape)
             #print("labels",labels.shape)
            
-            classf,feat,a_vals  = model(seqs) 
+            classf,feat,a_vals  = model(seqs)
             #print("classf",classf.shape)
             #print("feat",feat.shape)
             labels2=labels2.cuda()
