@@ -1954,6 +1954,7 @@ if __name__ == '__main__':
     track_id_loss_list = []
     lr_step_size=50
     best_cmc = 0
+    best_map = 0
     for e in range(args.epochs):
         print('Epoch',e)
         
@@ -1979,6 +1980,7 @@ if __name__ == '__main__':
                 else:
                     torch.save(model.state_dict(),os.path.join("/data/reid/marschkpt", args.save_path))
                 best_cmc = cmc
+                best_map = map
                 #f.write('best\n')
             #f.close()
         # Training
@@ -1993,7 +1995,8 @@ if __name__ == '__main__':
             imgs = data["img"].unsqueeze(1) # sequence length of 1, therefore introduce new dimension at index 1
             pids = data["pid"]
             camids = data["camid"]
-            labels2 = torch.zeros((len(imgs),1))
+            labels2 = data["erase_label"]
+            # labels2 = torch.zeros((len(imgs),1))
             # raise AttributeError(imgs.shape, pids.shape, labels2.shape)
         # print(batch_idx)
             criterion_ID = CrossEntropyLabelSmooth(len(pids)).cuda()
@@ -2052,6 +2055,7 @@ if __name__ == '__main__':
         id_loss_list.append(avg_id_loss)
         trip_loss_list.append(avg_RLL_loss)
         track_id_loss_list.append(avg_track_id_loss)
+    print('Best CMC: %.4f, Best mAP : %.4f'%(best_cmc,best_map))
 
 
  
