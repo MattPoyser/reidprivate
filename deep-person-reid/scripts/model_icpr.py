@@ -3,6 +3,7 @@
 import torch
 from torch import nn
 import torchvision
+from senet import SENet, SEResNetBottleneck, SEBottleneck, SEResNeXtBottleneck
 
 
 class SegmentConsensus(torch.autograd.Function):
@@ -436,7 +437,7 @@ class Baseline(nn.Module):
         #self.fc_loc[2].weight.data.zero_()
         ##self.fc_loc[2].bias.data.copy_(torch.tensor([1, 0, 0, 0, 1, 0], dtype=torch.float))
         """ 
-        
+
         self.consensus = ConsensusModule("avg")
         self.gap = nn.AdaptiveAvgPool2d(1)
         # self.gap = nn.AdaptiveMaxPool2d(1)
@@ -563,7 +564,7 @@ class Baseline(nn.Module):
         global_feat = self.base(input.view((-1,3) + input.size()[-2:]))  # (b, 2048, 1, 1)
         # flatten to (bs, 2048)
         a = F.relu(self.attention_conv(global_feat))
-        
+
         a = a.view(b, t, self.middle_dim)
         a = a.permute(0,2,1)
         a = F.relu(self.attention_tconv(a))
@@ -580,7 +581,8 @@ class Baseline(nn.Module):
 
         f = att_x.view(b,self.in_planes)
         f = self.bottleneck(f) # normalize for angular softmax
-       
+
+        # raise AttributeError(f.shape, self.classifier)
         cls_score = self.classifier(f)
        
         

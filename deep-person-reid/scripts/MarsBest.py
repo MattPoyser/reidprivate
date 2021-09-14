@@ -469,6 +469,8 @@ class CenterLoss(nn.Module):
         batch_size = x.size(0)
         distmat = torch.pow(x, 2).sum(dim=1, keepdim=True).expand(batch_size, self.num_classes) +                   torch.pow(self.centers, 2).sum(dim=1, keepdim=True).expand(self.num_classes, batch_size).t()
         # raise AttributeError(distmat.shape, self.centers.t().shape, x.shape)
+
+        # https://discuss.pytorch.org/t/addmm--in-torch-nn-linear/1735
         distmat.addmm_(1, -2, x, self.centers.t())
 
         classes = torch.arange(self.num_classes).long()
@@ -1764,6 +1766,7 @@ from torchreid.utils import set_random_seed
 from default_config import get_default_config
 from model_icpr import Baseline
 import argparse
+from torchreid.models import build_model
 
 parser = argparse.ArgumentParser(
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -1905,6 +1908,13 @@ if __name__ == '__main__':
     #criterion_RLL=RankedLoss(1.3,2.0,1.0)
     criterion_RLL=RankedLoss(1.3,2.0,1.)
      # 2. Optimizer
+    backbone = build_model(
+        name=cfg.model.name,
+        num_classes=datamanager.num_train_pids,
+        loss=cfg.loss.name,
+        pretrained=cfg.model.pretrained,
+        use_gpu=cfg.use_gpu
+    )
     # model = Baseline(model_name = 'resnet50_ibn_a', num_classes=625, last_stride=1, model_path='../resnet50_ibn_a.pth.tar', stn_flag='no', pretrain_choice='imagenet').to(device)
     model = Baseline(model_name = args.model_name, num_classes=625, last_stride=1, model_path=args.model_path, stn_flag='no', pretrain_choice='none').to(device)
 
@@ -1936,6 +1946,7 @@ if __name__ == '__main__':
     
     # center_criterion = CenterLoss(use_gpu=True, num_classes=512, feat_dim=512)
     center_criterion = CenterLoss(use_gpu=True)
+    # center_criterion = CenterLoss(use_gpu=True, num_classes=512, feat_dim=512)
     optimizer_center = torch.optim.SGD(center_criterion.parameters(), lr=0.5)
 
     id_loss_list = []
