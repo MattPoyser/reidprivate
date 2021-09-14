@@ -458,7 +458,8 @@ class Baseline(nn.Module):
         
         #------------------for the new model----------------------
         self.middle_dim = 256 # middle layer dimension
-        self.attention_conv = nn.Conv2d(self.in_planes, self.middle_dim, [14,7])
+        self.attention_conv = nn.Conv2d(self.in_planes, self.middle_dim, [14,14])
+        # self.attention_conv = nn.Conv2d(self.in_planes, self.middle_dim, [14,7]) #old, 224x112 images
         self.attention_tconv = nn.Conv1d(self.middle_dim, 1, 3, padding=1)
         self.attention_conv.apply(weights_init_kaiming) 
         self.attention_tconv.apply(weights_init_kaiming) 
@@ -564,7 +565,6 @@ class Baseline(nn.Module):
         global_feat = self.base(input.view((-1,3) + input.size()[-2:]))  # (b, 2048, 1, 1)
         # flatten to (bs, 2048)
         a = F.relu(self.attention_conv(global_feat))
-
         a = a.view(b, t, self.middle_dim)
         a = a.permute(0,2,1)
         a = F.relu(self.attention_tconv(a))
