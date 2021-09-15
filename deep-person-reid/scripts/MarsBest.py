@@ -947,8 +947,7 @@ def test(model, queryloader, galleryloader, pool='avg', use_gpu=True, ranks=[1, 
     
     print("mAP: {:.1%} ".format(mAP))
     print("CMC curve")
-    
-    return cmc[0], mAP
+    return cmc[0], cmc[1], mAP
 
 
 # In[6]:
@@ -1954,14 +1953,15 @@ if __name__ == '__main__':
     lr_step_size=50
     best_cmc = 0
     best_map = 0
+    best_cmc5 = 0
     for e in range(args.epochs):
         print('Epoch',e)
         
         scheduler.step()
         if (e+1)%10 == 0:
             #cmc,map = validation(model,test_dataloader)
-            cmc,map = test(model, queryloader, galleryloader)
-            print('CMC: %.4f, mAP : %.4f'%(cmc,map))
+            cmc1, cmc5 ,map = test(model, queryloader, galleryloader)
+            print('CMC1: %.4f, CMC5: %.4f, mAP : %.4f'%(cmc1,cmc5,map))
             #f = open(os.path.join(args.ckpt,args.log_path),'a')
             #f.write('epoch %d, rank-1 %f , mAP %f\n'%(e,cmc,map))
             #if args.frame_id_loss:
@@ -1973,12 +1973,13 @@ if __name__ == '__main__':
             id_loss_list = []
             trip_RLL_list = []
             track_id_loss_list = []
-            if cmc >= best_cmc:
+            if cmc1 >= best_cmc:
                 if args.ncc:
                     torch.save(model.state_dict(),os.path.join("/home2/lgfm95/reid/marschkpt", args.save_path))
                 else:
                     torch.save(model.state_dict(),os.path.join("/data/reid/marschkpt", args.save_path))
-                best_cmc = cmc
+                best_cmc = cmc1
+                best_cmc5 = cmc5
                 best_map = map
                 #f.write('best\n')
             #f.close()
@@ -2054,7 +2055,7 @@ if __name__ == '__main__':
         id_loss_list.append(avg_id_loss)
         trip_loss_list.append(avg_RLL_loss)
         track_id_loss_list.append(avg_track_id_loss)
-    print('Best CMC: %.4f, Best mAP : %.4f'%(best_cmc,best_map))
+    print('Best CMC1: %.4f, Best CMC5: %.4f, Best mAP : %.4f'%(best_cmc,best_cmc5, best_map))
 
 
  
