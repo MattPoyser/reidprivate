@@ -1944,9 +1944,8 @@ if __name__ == '__main__':
 
     
     
-    # center_criterion = CenterLoss(use_gpu=True, num_classes=512, feat_dim=512)
-    center_criterion = CenterLoss(use_gpu=True)
-    # center_criterion = CenterLoss(use_gpu=True, num_classes=512, feat_dim=512)
+    center_criterion = CenterLoss(use_gpu=True, num_classes=512, feat_dim=512)
+    # center_criterion = CenterLoss(use_gpu=True)
     optimizer_center = torch.optim.SGD(center_criterion.parameters(), lr=0.5)
 
     id_loss_list = []
