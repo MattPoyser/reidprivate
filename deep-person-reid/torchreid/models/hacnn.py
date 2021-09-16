@@ -290,7 +290,7 @@ class HACNN(nn.Module):
         x: (batch, channel, height, width)
         theta: (batch, 2, 3)
         """
-        grid = F.affine_grid(theta, x.size())
+        grid = F.affine_grid(theta, x.size()).cuda()
         x = F.grid_sample(x, grid)
         return x
 
