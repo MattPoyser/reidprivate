@@ -592,9 +592,9 @@ class Baseline(nn.Module):
             global_feat = self.additionallayer(global_feat)
             if test:
                 global_feat = global_feat.squeeze()
-        a = F.relu(self.attention_conv(global_feat))
         if test: # 2,1,256,[2,256,1,1]
-            raise AttributeError(b, t, self.middle_dim, a.shape)
+            raise AttributeError(b, t, self.middle_dim, global_feat.shape)
+        a = F.relu(self.attention_conv(global_feat))
         a = a.view(b, t, self.middle_dim)
         a = a.permute(0,2,1)
         a = F.relu(self.attention_tconv(a))
