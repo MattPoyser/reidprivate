@@ -1915,7 +1915,7 @@ if __name__ == '__main__':
         use_gpu=cfg.use_gpu
     )
     # model = Baseline(model_name = 'resnet50_ibn_a', num_classes=625, last_stride=1, model_path='../resnet50_ibn_a.pth.tar', stn_flag='no', pretrain_choice='imagenet').to(device)
-    model = Baseline(model_name = args.model_name, num_classes=625, last_stride=1, model_path=args.model_path, stn_flag='no', pretrain_choice='none').to(device)
+    model = Baseline(model_name = args.model_name, num_classes=625, last_stride=1, model_path=args.model_path, stn_flag='no', pretrain_choice='none', backbone=backbone).to(device)
 
     #optimizer = optim.Adam(model.parameters(),lr = 0.0001,weight_decay = 1e-5)
     base_lr = 0.00035 #0.0002

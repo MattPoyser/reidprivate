@@ -311,11 +311,12 @@ def weights_init_classifier(m):
 class Baseline(nn.Module):
     in_planes = 2048
 
-    def __init__(self, num_classes, last_stride, model_path, stn_flag, model_name, pretrain_choice):
+    def __init__(self, num_classes, last_stride, model_path, stn_flag, model_name, pretrain_choice, backbone=None):
         super(Baseline, self).__init__()
 
         self.model_name = model_name
         print("model_name",model_name)
+        self.isBackbone = False
         if model_name == 'resnet18':
             self.in_planes = 512
             self.base = ResNet(last_stride=last_stride, 
@@ -416,6 +417,10 @@ class Baseline(nn.Module):
         elif model_name == 'resnet50_ibn_b':
             self.base = resnet50_ibn_b(last_stride = last_stride)
 
+        elif model_name == 'backbone':
+            self.isBackbone = True
+            if backbone is not None:
+                self.base = backbone
         """
         # Spatial transformer localization-network
         self.localization = nn.Sequential(
@@ -458,8 +463,21 @@ class Baseline(nn.Module):
         
         #------------------for the new model----------------------
         self.middle_dim = 256 # middle layer dimension
-        self.attention_conv = nn.Conv2d(self.in_planes, self.middle_dim, [14,14])
-        # self.attention_conv = nn.Conv2d(self.in_planes, self.middle_dim, [14,7]) #old, 224x112 images
+        if self.isBackbone:
+            self.attention_conv = nn.Conv2d(self.in_planes, self.middle_dim, [1,1])
+            self.backbone_type = str(type(backbone))
+            if 'osnet' in self.backbone_type or 'hacnn' in self.backbone_type:
+                self.additionallayer = nn.Conv2d(512, 2048, [1, 1])
+            if 'mlfn' in self.backbone_type:
+                self.additionallayer = nn.Conv2d(1024, 2048, [1, 1])
+            if 'pcb' in self.backbone_type:
+                self.additionallayer = nn.Conv2d(12288, 2048, [1, 1])
+            else: # vit
+                self.additionallayer = nn.Conv2d(768, 2048, [1, 1])
+
+        else:
+            self.attention_conv = nn.Conv2d(self.in_planes, self.middle_dim, [14,14])
+            # self.attention_conv = nn.Conv2d(self.in_planes, self.middle_dim, [14,7]) #old, 224x112 images
         self.attention_tconv = nn.Conv1d(self.middle_dim, 1, 3, padding=1)
         self.attention_conv.apply(weights_init_kaiming) 
         self.attention_tconv.apply(weights_init_kaiming) 
@@ -564,6 +582,12 @@ class Baseline(nn.Module):
         t = input.size(1)
         global_feat = self.base(input.view((-1,3) + input.size()[-2:]))  # (b, 2048, 1, 1)
         # flatten to (bs, 2048)
+        # raise AttributeError(global_feat[1].unsqueeze(2).unsqueeze(2).shape, self.additionallayer)
+        if self.isBackbone:
+            if 'hacnn' in self.backbone_type:
+                global_feat = global_feat[1]
+            global_feat = global_feat[1].unsqueeze(2).unsqueeze(2)
+            global_feat = self.additionallayer(global_feat)
         a = F.relu(self.attention_conv(global_feat))
         a = a.view(b, t, self.middle_dim)
         a = a.permute(0,2,1)
