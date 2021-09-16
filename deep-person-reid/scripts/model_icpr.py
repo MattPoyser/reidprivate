@@ -581,19 +581,14 @@ class Baseline(nn.Module):
         t = input.size(1)
         global_feat = self.base(input.view((-1,3) + input.size()[-2:]))  # (b, 2048, 1, 1)
         # flatten to (bs, 2048)
-        # raise AttributeError(global_feat[1].unsqueeze(2).unsqueeze(2).shape, self.additionallayer)
+
         if self.isBackbone:
             if 'hacnn' in self.backbone_type:
                 global_feat = global_feat[1]
-            if test: # introduce batch channel
-                global_feat = global_feat[1].unsqueeze(1).unsqueeze(1).unsqueeze(0)
-            else:
-                global_feat = global_feat[1].unsqueeze(2).unsqueeze(2)
+            if not test: # extract features and lose softmax results
+                global_feat = global_feat[1]
+            global_feat = global_feat.unsqueeze(2).unsqueeze(2)
             global_feat = self.additionallayer(global_feat)
-            if test:
-                global_feat = global_feat.squeeze()
-        if test: # 2,1,256,[2,256,1,1]
-            raise AttributeError(b, t, self.middle_dim, global_feat.shape)
         a = F.relu(self.attention_conv(global_feat))
         a = a.view(b, t, self.middle_dim)
         a = a.permute(0,2,1)
