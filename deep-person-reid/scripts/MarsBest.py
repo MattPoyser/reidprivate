@@ -892,7 +892,7 @@ def test(model, queryloader, galleryloader, pool='avg', use_gpu=True, ranks=[1, 
         b, n, s, c, h, w = imgs.size()
         assert(b==1)
         imgs = imgs.view(b*n, s, c, h, w)
-        features = model(imgs)
+        features = model(imgs, test=True)
         features = features.view(n, -1)
         # features = torch.mean(features, 0)
         features = features.data.cpu()
@@ -916,7 +916,7 @@ def test(model, queryloader, galleryloader, pool='avg', use_gpu=True, ranks=[1, 
         b, n, s, c, h, w = imgs.size()
         imgs = imgs.view(b*n, s , c, h, w)
         assert(b==1)
-        features = model(imgs)
+        features = model(imgs, test=True)
         features = features.view(n, -1)
         # if pool == 'avg':
         #     features = torch.mean(features, 0)

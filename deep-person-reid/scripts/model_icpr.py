@@ -468,13 +468,12 @@ class Baseline(nn.Module):
             self.backbone_type = str(type(backbone))
             if 'osnet' in self.backbone_type or 'hacnn' in self.backbone_type:
                 self.additionallayer = nn.Conv2d(512, 2048, [1, 1])
-            if 'mlfn' in self.backbone_type:
+            elif 'mlfn' in self.backbone_type:
                 self.additionallayer = nn.Conv2d(1024, 2048, [1, 1])
-            if 'pcb' in self.backbone_type:
+            elif 'pcb' in self.backbone_type:
                 self.additionallayer = nn.Conv2d(12288, 2048, [1, 1])
             else: # vit
                 self.additionallayer = nn.Conv2d(768, 2048, [1, 1])
-
         else:
             self.attention_conv = nn.Conv2d(self.in_planes, self.middle_dim, [14,14])
             # self.attention_conv = nn.Conv2d(self.in_planes, self.middle_dim, [14,7]) #old, 224x112 images
@@ -574,7 +573,7 @@ class Baseline(nn.Module):
             
             
             
-    def forward (self, input):
+    def forward (self, input, test=False):
         
         #if not self.training:input=input.view(input.size(0)//8,8,3,224, 112)
             
@@ -586,9 +585,16 @@ class Baseline(nn.Module):
         if self.isBackbone:
             if 'hacnn' in self.backbone_type:
                 global_feat = global_feat[1]
-            global_feat = global_feat[1].unsqueeze(2).unsqueeze(2)
+            if test: # introduce batch channel
+                global_feat = global_feat[1].unsqueeze(1).unsqueeze(1).unsqueeze(0)
+            else:
+                global_feat = global_feat[1].unsqueeze(2).unsqueeze(2)
             global_feat = self.additionallayer(global_feat)
+            if test:
+                global_feat = global_feat.squeeze()
         a = F.relu(self.attention_conv(global_feat))
+        if test: # 2,1,256,[2,256,1,1]
+            raise AttributeError(b, t, self.middle_dim, a.shape)
         a = a.view(b, t, self.middle_dim)
         a = a.permute(0,2,1)
         a = F.relu(self.attention_tconv(a))
