@@ -582,6 +582,7 @@ class Baseline(nn.Module):
         b = input.size(0)
         t = input.size(1)
         global_feat = self.base(input.view((-1,3) + input.size()[-2:]))  # (b, 2048, 1, 1)
+        raise AttributeError(global_feat.shape)
         # flatten to (bs, 2048)
 
         if self.isBackbone:
