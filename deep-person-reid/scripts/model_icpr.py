@@ -585,12 +585,10 @@ class Baseline(nn.Module):
         # flatten to (bs, 2048)
 
         if self.isBackbone:
-            if 'hacnn' in self.backbone_type:
+            if 'hacnn' in self.backbone_type and not test:
                 global_feat = global_feat[1]
             if not test: # extract features and lose softmax results
                 global_feat = global_feat[1]
-            if test:
-                raise AttributeError(global_feat.shape)
             global_feat = global_feat.unsqueeze(2).unsqueeze(2)
             global_feat = self.additionallayer(global_feat)
         a = F.relu(self.attention_conv(global_feat))
