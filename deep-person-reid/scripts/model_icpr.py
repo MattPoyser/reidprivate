@@ -466,8 +466,11 @@ class Baseline(nn.Module):
         if self.isBackbone:
             self.attention_conv = nn.Conv2d(self.in_planes, self.middle_dim, [1,1])
             self.backbone_type = str(type(backbone))
-            if 'osnet' in self.backbone_type or 'hacnn' in self.backbone_type:
+            if 'osnet' in self.backbone_type:
                 self.additionallayer = nn.Conv2d(512, 2048, [1, 1])
+            if 'hacnn' in self.backbone_type:
+                self.additionallayerpre = nn.Conv2d(512, 1024, [1, 1])
+                self.additionallayer = nn.Conv2d(1024, 2048, [1, 1])
             elif 'mlfn' in self.backbone_type:
                 self.additionallayer = nn.Conv2d(1024, 2048, [1, 1])
             elif 'pcb' in self.backbone_type:
@@ -585,12 +588,13 @@ class Baseline(nn.Module):
         # flatten to (bs, 2048)
 
         if self.isBackbone:
-            raise AttributeError(global_feat[1][1].shape, global_feat[1][0].shape, global_feat[0][1].shape, global_feat[0][0].shape, len(global_feat), len(global_feat[0]), len(global_feat[1]))
             if 'hacnn' in self.backbone_type and not test:
                 global_feat = global_feat[1]
             if not test: # extract features and lose softmax results
                 global_feat = global_feat[1]
             global_feat = global_feat.unsqueeze(2).unsqueeze(2)
+            if 'hacnn' in self.backbone_type and not test:
+                global_feat = self.additionallayerpre(global_feat)
             global_feat = self.additionallayer(global_feat)
         a = F.relu(self.attention_conv(global_feat))
         a = a.view(b, t, self.middle_dim)
