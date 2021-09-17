@@ -472,6 +472,8 @@ class Baseline(nn.Module):
                 self.additionallayer = nn.Conv2d(1024, 2048, [1, 1])
             elif 'pcb' in self.backbone_type:
                 self.additionallayer = nn.Conv2d(12288, 2048, [1, 1])
+            elif 'mid' in self.backbone_type:
+                self.additionallayer = nn.Conv2d(3072, 2048, [1, 1])
             else: # vit
                 self.additionallayer = nn.Conv2d(768, 2048, [1, 1])
         else:
