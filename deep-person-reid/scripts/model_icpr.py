@@ -581,10 +581,9 @@ class Baseline(nn.Module):
             
         b = input.size(0)
         t = input.size(1)
-        raise AttributeError(input.shape)
-        global_feat = self.base(input.view((-1,3) + input.size()[-2:]))  # (b, 2048, 1, 1)
         if test:
-            raise AttributeError(global_feat[0].shape, global_feat[1].shape)
+            raise AttributeError(input.shape)
+        global_feat = self.base(input.view((-1,3) + input.size()[-2:]))  # (b, 2048, 1, 1)
         # flatten to (bs, 2048)
 
         if self.isBackbone:
@@ -592,7 +591,6 @@ class Baseline(nn.Module):
                 global_feat = global_feat[1]
             if not test: # extract features and lose softmax results
                 global_feat = global_feat[1]
-            # raise AttributeError(global_feat.shape, self.additionallayer)
             global_feat = global_feat.unsqueeze(2).unsqueeze(2)
             global_feat = self.additionallayer(global_feat)
         a = F.relu(self.attention_conv(global_feat))
