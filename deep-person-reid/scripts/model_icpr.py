@@ -585,7 +585,7 @@ class Baseline(nn.Module):
         # flatten to (bs, 2048)
 
         if self.isBackbone:
-            raise AttributeError(global_feat[1].shape)
+            raise AttributeError(global_feat[1][1].shape, global_feat[1][0].shape, global_feat[0][1].shape, global_feat[0][0].shape, len(global_feat), len(global_feat[0]), len(global_feat[1]))
             if 'hacnn' in self.backbone_type and not test:
                 global_feat = global_feat[1]
             if not test: # extract features and lose softmax results
