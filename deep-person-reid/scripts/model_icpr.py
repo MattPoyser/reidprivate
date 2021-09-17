@@ -581,12 +581,12 @@ class Baseline(nn.Module):
             
         b = input.size(0)
         t = input.size(1)
-        if test:
-            raise AttributeError(input.shape)
         global_feat = self.base(input.view((-1,3) + input.size()[-2:]))  # (b, 2048, 1, 1)
         # flatten to (bs, 2048)
 
         if self.isBackbone:
+            if test:
+                raise AttributeError(global_feat.shape)
             if 'hacnn' in self.backbone_type and not test:
                 global_feat = global_feat[1]
             if not test: # extract features and lose softmax results
