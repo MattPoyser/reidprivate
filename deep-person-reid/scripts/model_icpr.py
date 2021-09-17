@@ -591,7 +591,7 @@ class Baseline(nn.Module):
                 global_feat = global_feat[1]
             if not test: # extract features and lose softmax results
                 global_feat = global_feat[1]
-            raise AttributeError(global_feat.shape, self.additionallayer)
+            # raise AttributeError(global_feat.shape, self.additionallayer)
             global_feat = global_feat.unsqueeze(2).unsqueeze(2)
             global_feat = self.additionallayer(global_feat)
         a = F.relu(self.attention_conv(global_feat))
